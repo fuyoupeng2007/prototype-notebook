@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>少跑一趟 · 出发前条件预检</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="trip-v2.css"></head>
+<body class="orange"><header><a class="logo" href="index.html"><span class="mark">✳</span>少跑一趟</a><nav class="nav"><a href="index.html">三个方向</a><a href="share.html">发前检查</a><a href="guide.html">爸妈跟着点</a><a href="trip.html" class="active" aria-current="page">少跑一趟</a></nav><span class="local">生活里的三个新解法 / v0.2</span></header>
+<main><div class="intro-row"><div><div class="eyebrow">03 / CHECK BEFORE YOU LEAVE</div><h1>先找到卡住的条件，再决定要不要出门。</h1><p class="lead">看材料是否齐、顺序是否对、时间是否够。改变一个假设，就能比较另一种安排。</p></div><span class="badge">虚构校园场景 · 不作真实办事指南</span></div>
+<div class="trip-workspace">
+ <section class="panel trip-conditions"><div class="panel-header"><h3>你现在的条件</h3><span class="num">01 / INPUT</span></div>
+  <label for="scenario">选一个场景</label><select id="scenario"><option value="card">校园补卡 + 领取借用电脑</option><option value="repair">维修送检 + 借备用设备</option><option value="library">图书归还 + 领取预约书</option></select>
+  <div class="time-pair"><div><label for="start">出发时间</label><input id="start" type="time" value="15:30"></div><div><label for="deadline">最晚回来</label><input id="deadline" type="time" value="17:00"></div></div>
+  <label for="buffer">路途额外缓冲</label><input id="buffer" type="range" min="0" max="20" value="0"><div class="small" id="buffer-label"></div>
+  <fieldset class="material-fieldset"><legend>现在手边已有的材料</legend><div id="materials"></div></fieldset>
+  <div class="verification-box"><label class="toggle"><input id="verified" type="checkbox"> 已阅读并使用两份演示规则</label><p class="micro">默认不勾选。可展开中间的来源逐条确认使用；此操作不代表核实了现实机构的规定。</p></div>
+  <button class="btn ghost full" id="reset">↺ 重置当前场景</button>
+  <p class="micro trip-limit">仅计算模拟同一天。路程使用固定估计，加你设定的每段缓冲；不含实时路况、排队和节假日。</p>
+ </section>
+ <section class="panel trip-reason"><div class="panel-header"><h3>这趟能不能算通？</h3><span class="num">02 / CHECK</span></div><div id="status" role="status" aria-live="polite"></div><div id="evaluation-mode" hidden></div><div id="blockers"></div>
+  <details class="facts-details" id="source-details"><summary>查看两份来源与耗时估计 <span id="source-count"></span></summary><div id="facts"></div></details>
+  <div class="trip-principle"><span>先说明依据，再判断可行。</span><p>缺材料的步骤不会被排成“已办理”，上一步没有产出的凭证也不会凭空出现。</p></div>
+ </section>
+ <section class="panel trip-plans"><div class="panel-header"><h3>方案与调整</h3><span class="num">03 / COMPARE</span></div>
+  <div class="trip-tools"><button class="btn full" id="fix">试算：补材料 / 换时间 ↗</button><button class="btn ghost full" id="export">↓ 导出本次核对</button></div>
+  <div id="simulation-preview" hidden></div><div id="plans"></div>
+  <p class="micro trip-plan-note">“算得通”仅指示例约束满足。每一步都需要现实条件成立，程序不预约、不替你取得材料。</p>
+ </section>
+</div><footer><span>全国大学生软件创新大赛 · 赛题二方向探索</span><span>本地条件计算 · 示例数据 · 未接入真实模型或手机系统权限</span></footer></main>
+<div id="toast" role="status"></div><script src="common.js"></script><script src="trip.js"></script></body></html>
