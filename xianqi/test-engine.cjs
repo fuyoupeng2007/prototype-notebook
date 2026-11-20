@@ -1,0 +1,23 @@
+const assert=require('node:assert/strict');const E=require('./legacy-core/engine-v2.cjs');let tests=0;function t(name,fn){fn();tests++;console.log('PASS',name);}
+t('strict civil dates',()=>{assert.equal(E.parse('2026-02-29'),null);assert.equal(E.parse('2024-02-29'),Date.UTC(2024,1,29));assert.equal(E.parse('2026-13-01'),null);});
+t('month and year boundary',()=>{assert.equal(E.addDays('2026-01-31',30),'2026-03-02');assert.equal(E.addDays('2026-12-25',15),'2027-01-09');});
+t('calendar year not 365 days',()=>{assert.equal(E.addYear('2023-03-01'),'2024-03-01');assert.equal(E.addYear('2024-02-29'),'2025-02-28');});
+t('today is not overdue',()=>{const r=E.timeline({injury:'2026-10-18'},'2026-11-17')[0];assert.equal(r.left,0);assert.equal(r.state,'today');});
+t('submission never invents acceptance',()=>{let r=E.timeline({submitted:'2026-10-01'},'2026-11-17');assert.equal(r.find(x=>x.id==='recognition').state,'waiting');assert.equal(r.find(x=>x.id==='review').state,'late');});
+t('supplement pauses review estimate',()=>{const r=E.timeline({submitted:'2026-10-01',needsSupplement:true},'2026-11-17').find(x=>x.id==='review');assert.equal(r.state,'confirm');assert.equal(r.due,null);});
+t('completed supplement changes review anchor',()=>{const r=E.timeline({submitted:'2026-10-01',completed:'2026-11-10'},'2026-11-17').find(x=>x.id==='review');assert.equal(r.due,'2026-11-25');});
+t('normal and clear recognition',()=>{assert.equal(E.timeline({accepted:'2026-10-01'})[3].due,'2026-11-30');assert.equal(E.timeline({accepted:'2026-10-01',simple:true})[3].due,'2026-10-16');});
+t('ongoing suspension hides countdown',()=>{const r=E.timeline({accepted:'2026-10-01',pauseStart:'2026-10-10'})[3];assert.equal(r.state,'paused');assert.equal(r.due,null);});
+t('resumed suspension extends reference date',()=>{assert.equal(E.timeline({accepted:'2026-10-01',pauseStart:'2026-10-10',pauseEnd:'2026-10-20'})[3].due,'2026-12-10');});
+t('recognition delivery 20 vs appraisal delivery 15',()=>{let a=E.timeline({decision:'2026-10-01',appraisalDecision:'2026-10-01'});assert.equal(a[4].due,'2026-10-21');assert.equal(a[6].due,'2026-10-16');});
+t('Hubei requires acceptance, no inferred date',()=>{assert.equal(E.timeline({region:'hubei',appraisalApplied:'2026-10-01'})[5].due,null);assert.equal(E.timeline({region:'hubei',appraisalApplied:'2026-10-01',appraisalAccepted:'2026-10-05'})[5].due,'2026-12-04');});
+t('appraisal extension is opt-in',()=>{assert.equal(E.timeline({appraisalApplied:'2026-10-01',appraisalExtended:true})[5].due,'2026-12-30');});
+t('agency dates take precedence with provenance',()=>{let r=E.timeline({accepted:'2026-10-01',overrides:{recognition:{date:'2026-11-20',reason:'书面通知'}}})[3];assert.equal(r.due,'2026-11-20');assert.equal(r.hasOverride,true);});
+t('chronology and future dates rejected',()=>{assert.ok(E.validate({injury:'2026-11-10',accepted:'2026-11-01'},'2026-11-17').length);assert.ok(E.validate({injury:'2026-12-01'},'2026-11-17').length);});
+t('incomplete notice override rejected',()=>assert.ok(E.validate({overrides:{recognition:{date:'2026-11-30',reason:''}}},'2026-11-17').length));
+t('again appraisal does not confuse administrative remedy',()=>{const r=E.timeline({appraisalReceived:'2026-11-01'},'2026-11-17')[7];assert.equal(r.state,'optional');assert.equal(E.timeline({appraisalReceived:'2026-11-01',dispute:true},'2026-11-17')[7].state,'late');});
+t('unicode backup restores as separate case',()=>{let c={id:'original',name:'张家的办理进度',injury:'2026-10-01',notes:[{date:'2026-11-17',text:'已电话联系'}]};let d=E.decode(E.encode(c));assert.equal(d.name,c.name);assert.equal(d.notes[0].text,'已电话联系');assert.notEqual(d.id,'original');});
+t('malformed backup rejected',()=>assert.throws(()=>E.decode('XQ1.not-valid')));
+t('backup ignores unknown properties',()=>{let c=E.normalize({name:'测试',evil:{},materials:{application:'ready'}});assert.equal(c.evil,undefined);assert.equal(c.materials.application,'ready');});
+t('large unicode backup does not overflow stack',()=>{const notes=Array.from({length:100},()=>({date:'2026-11-17',text:'中文记录'.repeat(300)}));const restored=E.decode(E.encode({name:'较长记录',notes}));assert.equal(restored.notes.length,100);assert.equal(restored.notes[0].text.length,1200);});
+console.log(`${tests} meaningful date / state / import checks passed.`);
